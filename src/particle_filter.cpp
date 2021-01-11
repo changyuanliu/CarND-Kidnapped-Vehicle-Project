@@ -35,6 +35,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
   std::normal_distribution<double> xd(x,std[0]);
   std::normal_distribution<double> yd(y,std[1]);
   std::normal_distribution<double> td(theta,std[2]);
+  std::cout<<"num_particles: "<<num_particles<<std::endl;
   for(int i=0; i<num_particles; i++)
   {
     particles[i].x = xd(generator);
