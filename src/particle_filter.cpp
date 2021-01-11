@@ -39,6 +39,7 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
   particles.resize(num_particles);
   for(int i=0; i<num_particles; i++)
   {
+    particles[i].id = i;
     particles[i].x = xd(generator);
     particles[i].y = yd(generator);
     particles[i].theta = td(generator);
