@@ -128,18 +128,15 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
   
-  vector<LandmarkObs> map_observations;
-  map_observations.resize(observations.size());
+  vector<LandmarkObs> map_observations = observations;
   weights.resize(num_particles);
   for(int i=0; i<num_particles; i++)
-  {
-    
+  {    
     // std::cout<<"particles[0].weight = "<<particles[0].weight<<std::endl;
     //convert the observations to map's coordinate system
     //according to "Quiz: Landmarks" in Lesson 5
     for(int j=0; j<map_observations.size(); j++)
     {   
-      map_observations[j].id = observations[j].id;
       map_observations[j].x = particles[i].x + observations[j].x*cos(particles[i].theta) - observations[j].y*sin(particles[i].theta);
       map_observations[j].y = particles[i].x + observations[j].x*sin(particles[i].theta) + observations[j].y*cos(particles[i].theta);
     }
@@ -202,7 +199,7 @@ void ParticleFilter::resample() {
   double max_weight = *max_element(weights.begin(), weights.end());
   std::cout<<"max weignt: "<<max_weight<<std::endl;
   std::uniform_real_distribution<double> unirealdist(0.0, 2*max_weight);
-  double beta = 0;
+  double beta = 0.0;
   
   vector<Particle> resampled_particles;
 
