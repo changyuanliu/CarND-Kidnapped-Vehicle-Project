@@ -179,10 +179,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       double prob = exp(-0.5*(delta_x*delta_x/(s_x*s_x)+delta_y*delta_y/(s_y*s_y))) / (2*M_PI*s_x*s_y);
       weight *= prob;
   }
+    std::cout<<"weight = "<weight<<std::endl;
     particles[i].weight = weight;
     weights[i] = weight;
   }
-  // std::cout<<"particles[0].weight = "<<particles[0].weight<<std::endl;
+  
 }
 
 void ParticleFilter::resample() {
