@@ -73,8 +73,9 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
     }
     else
     {
+      //predict per "Calculate Prediction Step: Quiz"
       particles[i].x += velocity/yaw_rate*(sin(particles[i].theta+yaw_rate*delta_t)-sin(particles[i].theta)) + xd(generator);
-      particles[i].y += velocity/yaw_rate*(cos(particles[i].theta-cos(particles[i].theta+yaw_rate*delta_t))) + yd(generator);
+      particles[i].y += velocity/yaw_rate*(cos(particles[i].theta)-cos(particles[i].theta+yaw_rate*delta_t)) + yd(generator);
       particles[i].theta += yaw_rate*delta_t + td(generator);
     }
   }  
