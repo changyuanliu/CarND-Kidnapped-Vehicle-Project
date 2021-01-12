@@ -158,7 +158,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     //associate the observations with predictions
     dataAssociation(predictions, map_observations);
     std::cout<<"map_observations[0].x = "<<map_observations[0].x<<std::endl;
-    std::cout<<"predictions[0].x = "<<predictions[0].x<<std::endl;
+    std::cout<<"predictions.size() = "<<predictions.size()<<std::endl;
     //update weights based on multivariate Guassian distribution
     double weight = 1.0;
     for(int j=0; j<map_observations.size(); j++)
