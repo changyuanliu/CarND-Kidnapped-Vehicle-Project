@@ -157,7 +157,8 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
     //associate the observations with predictions
     dataAssociation(predictions, map_observations);
-
+    std::cout<<"map_observations[0].x = "<<map_observations[0].x<<std::endl;
+    std::cout<<"predictions[0].x = "<<predictions[0].x<<std::endl;
     //update weights based on multivariate Guassian distribution
     double weight = 1.0;
     for(int j=0; j<map_observations.size(); j++)
@@ -179,7 +180,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       double prob = exp(-0.5*(delta_x*delta_x/(s_x*s_x)+delta_y*delta_y/(s_y*s_y))) / (2*M_PI*s_x*s_y);
       weight *= prob;
   }
-    std::cout<<"weight = "<weight<<std::endl;
+    
     particles[i].weight = weight;
     weights[i] = weight;
   }
