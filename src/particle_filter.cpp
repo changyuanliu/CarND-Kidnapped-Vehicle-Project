@@ -175,7 +175,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       double delta_y = map_observations[j].y - associated_prediction.y;
       double s_x = std_landmark[0];
       double s_y = std_landmark[1];
-      double prob = (exp(-0.5*(delta_x*delta_x/(s_x*s_x)+delta_y*delta_y/(s_y*s_y))) / sqrt(2*M_PI)*s_x*s_y);
+      double prob = exp(-0.5*(delta_x*delta_x/(s_x*s_x)+delta_y*delta_y/(s_y*s_y))) / (2*M_PI*s_x*s_y);
       weight *= prob;
   }
     particles[i].weight = weight;
