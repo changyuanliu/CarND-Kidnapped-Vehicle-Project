@@ -142,7 +142,9 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
     //find predictions (map_landmarks) in the particle's sensing range
     vector<LandmarkObs> predictions;
-    LandmarkObs prdt;  
+    LandmarkObs prdt;
+    //init weight
+    double weight = 1.0;
     for(int j=0; j<map_landmarks.landmark_list.size(); j++)
     {
       if(dist(particles[i].x, particles[i].y, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f) <= sensor_range)
@@ -157,8 +159,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     dataAssociation(predictions, map_observations);
     std::cout<<"map_observations[0].x = "<<map_observations[0].x<<std::endl;
     std::cout<<"predictions.size() = "<<predictions.size()<<std::endl;
-    //update weights based on multivariate Guassian distribution
-    double weight = 1.0;
+    //update weights based on multivariate Guassian distribution    
     for(int j=0; j<map_observations.size(); j++)
     {
       //locate the associated prediction
