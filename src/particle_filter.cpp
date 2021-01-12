@@ -136,10 +136,11 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     
     // std::cout<<"particles[0].weight = "<<particles[0].weight<<std::endl;
     //convert the observations to map's coordinate system
+    //according to "Quiz: Landmarks" in Lesson 5
     for(int j=0; j<map_observations.size(); j++)
     {   
-      map_observations[j].x = particles[i].x*cos(particles[i].theta) + particles[i].y*sin(particles[i].theta) + observations[j].x;
-      map_observations[j].y = particles[i].x*sin(particles[i].theta) + particles[i].x*cos(particles[i].theta) + observations[j].y;
+      map_observations[j].x = particles[i].x + observations[j].x*cos(particles[i].theta) - observations[j].y*sin(particles[i].theta);
+      map_observations[j].y = particles[i].x + observations[j].x*sin(particles[i].theta) + observations[j].y*cos(particles[i].theta);
     }
     //find predictions (map_landmarks) in the particle's sensing range
     vector<LandmarkObs> predictions;
