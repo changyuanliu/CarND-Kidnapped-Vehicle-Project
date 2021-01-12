@@ -196,6 +196,7 @@ void ParticleFilter::resample() {
   std::default_random_engine generator;
   auto index = uniintdist(generator);
   double max_weight = *max_element(weights.begin(), weights.end());
+  std::cout<<"max weignt: "<<max_weight<<std::endl;
   std::uniform_real_distribution<double> unirealdist(0.0, 2*max_weight);
   double beta = 0;
   
