@@ -139,6 +139,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     //according to "Quiz: Landmarks" in Lesson 5
     for(int j=0; j<map_observations.size(); j++)
     {   
+      map_observations[j].id = observations[j].id;
       map_observations[j].x = particles[i].x + observations[j].x*cos(particles[i].theta) - observations[j].y*sin(particles[i].theta);
       map_observations[j].y = particles[i].x + observations[j].x*sin(particles[i].theta) + observations[j].y*cos(particles[i].theta);
     }
