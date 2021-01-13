@@ -131,7 +131,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
    */
   
-  vector<LandmarkObs> map_observations = observations;
   weights.resize(num_particles);
   for(int i=0; i<num_particles; i++)
   {    
@@ -141,6 +140,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     double p_x = particles[i].x;
     double p_y = particles[i].y;
     double p_theta = particles[i].theta;
+    vector<LandmarkObs> map_observations = observations;
     for(int j=0; j<observations.size(); j++)
     { 
       map_observations[j].id = observations[j].id;
