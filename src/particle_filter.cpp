@@ -33,17 +33,17 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
    */
   num_particles = 100;  // TODO: Set the number of particles
   std::default_random_engine generator;
-  std::normal_distribution<double> xd(0,std[0]);
-  std::normal_distribution<double> yd(0,std[1]);
-  std::normal_distribution<double> td(0,std[2]);
+  std::normal_distribution<double> xd(x,std[0]);
+  std::normal_distribution<double> yd(y,std[1]);
+  std::normal_distribution<double> td(theta,std[2]);
 
   particles.resize(num_particles);
   for(int i=0; i<num_particles; i++)
   {
     particles[i].id = i;
-    particles[i].x = x + xd(generator);
-    particles[i].y = y + yd(generator);
-    particles[i].theta = theta + td(generator);
+    particles[i].x = xd(generator);
+    particles[i].y = yd(generator);
+    particles[i].theta = td(generator);
     particles[i].weight = 1.0;
   }
   is_initialized = true;
