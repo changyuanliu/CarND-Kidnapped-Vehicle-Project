@@ -33,9 +33,9 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
    */
   num_particles = 100;  // TODO: Set the number of particles
   std::default_random_engine generator;
-  std::normal_distribution<double> xd(x,std[0]);
-  std::normal_distribution<double> yd(y,std[1]);
-  std::normal_distribution<double> td(theta,std[2]);
+  std::normal_distribution<double> xd(0,std[0]);
+  std::normal_distribution<double> yd(0,std[1]);
+  std::normal_distribution<double> td(0,std[2]);
 
   particles.resize(num_particles);
   for(int i=0; i<num_particles; i++)
@@ -129,8 +129,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   https://www.willamette.edu/~gorr/classes/GeneralGraphics/Transforms/transforms2d.htm
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
-   */  
-  
+   */
+  weights.resize(num_particles);
+  double std_x = std_landmark[0];
+  double std_y = std_landmark[1];
   for(int i=0; i<num_particles; i++)
   {    
     //convert the observations to map's coordinate system
@@ -177,19 +179,28 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
           associated_prediction = predictions[k];  
         }
       }
-      //calculate 2-d normal distribution for each observation
+      //calculate 2-d normal distribution PDF for each observation
       double delta_x = map_observations[j].x - associated_prediction.x;
       double delta_y = map_observations[j].y - associated_prediction.y;
-      double std_x = std_landmark[0];
-      double std_y = std_landmark[1];
+      if(fabs(delta_x)>=8 || fabs(delta_y)>=8) 
+      {
+        std::cout<<"Ooops....."<<observations[j].id<<" vs "<<map_observations[j].id<<" vs "<<associated_prediction.id<<std::endl;
+        std::cout<<"p_x = "<<p_x<<" p_y = "<<p_y<<" p_theta = "<<p_theta<<std::endl;
+        std::cout<<"Ooops....."<<observations[j].x<<" vs "<<map_observations[j].x<<" vs "<<associated_prediction.x<<std::endl;
+        std::cout<<"Ooops....."<<observations[j].y<<" vs "<<map_observations[j].y<<" vs "<<associated_prediction.y<<std::endl;
+      }
+      
       double prob = exp(-0.5*(delta_x*delta_x/(std_x*std_x)+delta_y*delta_y/(std_y*std_y))) / (2*M_PI*std_x*std_y);
       weight *= prob;
     }    
     //update weight in the particle
     particles[i].weight = weight;
     //update weights which will be used in resample later
-    //weights.push_back(weight);
-  }  
+    weights[i] = weight;
+  }
+  double max_weight = *max_element(weights.begin(), weights.end());
+  std::cout<<"==========end of updateweights==========="<<std::endl;
+  std::cout<<"max weignt = "<<max_weight<<std::endl;
 }
 
 void ParticleFilter::resample() {
@@ -212,7 +223,7 @@ void ParticleFilter::resample() {
   //find the max weight
   double max_weight = *max_element(weights.begin(), weights.end());
   std::cout<<"==========resample==========="<<std::endl;
-  std::cout<<"max weignt = "<<weights[1]<<std::endl;
+  std::cout<<"max weignt = "<<max_weight<<std::endl;
   std::uniform_real_distribution<double> uni_real_dist(0.0, 2*max_weight);
   double beta = 0.0;
   
