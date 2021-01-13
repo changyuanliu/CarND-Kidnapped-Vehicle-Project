@@ -181,15 +181,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       }
       //calculate 2-d normal distribution PDF for each observation
       double delta_x = map_observations[j].x - associated_prediction.x;
-      double delta_y = map_observations[j].y - associated_prediction.y;
-      if(fabs(delta_x)>=8 || fabs(delta_y)>=8) 
-      {
-        std::cout<<"Ooops....."<<observations[j].id<<" vs "<<map_observations[j].id<<" vs "<<associated_prediction.id<<std::endl;
-        std::cout<<"p_x = "<<p_x<<" p_y = "<<p_y<<" p_theta = "<<p_theta<<std::endl;
-        std::cout<<"Ooops....."<<observations[j].x<<" vs "<<map_observations[j].x<<" vs "<<associated_prediction.x<<std::endl;
-        std::cout<<"Ooops....."<<observations[j].y<<" vs "<<map_observations[j].y<<" vs "<<associated_prediction.y<<std::endl;
-      }
-      
+      double delta_y = map_observations[j].y - associated_prediction.y;    
       double prob = exp(-0.5*(delta_x*delta_x/(std_x*std_x)+delta_y*delta_y/(std_y*std_y))) / (2*M_PI*std_x*std_y);
       weight *= prob;
     }    
@@ -198,9 +190,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     //update weights which will be used in resample later
     weights[i] = weight;
   }
-  double max_weight = *max_element(weights.begin(), weights.end());
-  std::cout<<"==========end of updateweights==========="<<std::endl;
-  std::cout<<"max weignt = "<<max_weight<<std::endl;
 }
 
 void ParticleFilter::resample() {
@@ -215,15 +204,13 @@ void ParticleFilter::resample() {
   std::uniform_int_distribution<int> uni_int_dist(0, num_particles-1);  
   auto index = uni_int_dist(generator);
 
-  //get all of the weights
-  vector<double> weights;
-  for (int i = 0; i < num_particles; i++) {
-    weights.push_back(particles[i].weight);
-  }
+  // //get all of the weights
+  // vector<double> weights;
+  // for (int i = 0; i < num_particles; i++) {
+  //   weights.push_back(particles[i].weight);
+  // }
   //find the max weight
   double max_weight = *max_element(weights.begin(), weights.end());
-  std::cout<<"==========resample==========="<<std::endl;
-  std::cout<<"max weignt = "<<max_weight<<std::endl;
   std::uniform_real_distribution<double> uni_real_dist(0.0, 2*max_weight);
   double beta = 0.0;
   
