@@ -65,17 +65,19 @@ void ParticleFilter::prediction(double delta_t, double std_pos[],
   std::normal_distribution<double> td(0,std_pos[2]);
   for(int i=0; i<num_particles; i++)
   {
+    double p_theta = particles[i].theta;
     //deal with yaw_rate==0
     if(fabs(yaw_rate)<1.0e-6)
     {
-      particles[i].x += velocity*delta_t*cos(particles[i].theta) + xd(generator);
-      particles[i].y += velocity*delta_t*sin(particles[i].theta) + yd(generator);
+      particles[i].x += velocity*delta_t*cos(p_theta) + xd(generator);
+      particles[i].y += velocity*delta_t*sin(p_theta) + yd(generator);
+      particles[i].theta += td(generator);
     }
     else
     {
       //predict per "Calculate Prediction Step: Quiz"
-      particles[i].x += velocity/yaw_rate*(sin(particles[i].theta+yaw_rate*delta_t)-sin(particles[i].theta)) + xd(generator);
-      particles[i].y += velocity/yaw_rate*(cos(particles[i].theta)-cos(particles[i].theta+yaw_rate*delta_t)) + yd(generator);
+      particles[i].x += velocity/yaw_rate*(sin(p_theta+yaw_rate*delta_t)-sin(p_theta)) + xd(generator);
+      particles[i].y += velocity/yaw_rate*(cos(p_theta)-cos(p_theta+yaw_rate*delta_t)) + yd(generator);
       particles[i].theta += yaw_rate*delta_t + td(generator);
     }
   }  
@@ -107,12 +109,7 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
       }
     }
     //Assign the closest precdiction to the observation
-    observations[i].id = min_p.id;
-    // std::cout<<"observations[i].x = "<<observations[i].x<<std::endl;
-    // std::cout<<"observations[i].y = "<<observations[i].y<<std::endl;
-    // std::cout<<"min_p.x = "<<min_p.x<<std::endl;    
-    // std::cout<<"min_p.y = "<<min_p.y<<std::endl;
-    // std::cout<<"min_dist = "<<min_dist<<std::endl;          
+    observations[i].id = min_p.id;  
   }
 
 }
@@ -141,10 +138,16 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     // std::cout<<"particles[0].weight = "<<particles[0].weight<<std::endl;
     //convert the observations to map's coordinate system
     //according to "Quiz: Landmarks" in Lesson 5
-    for(int j=0; j<map_observations.size(); j++)
-    {   
-      map_observations[j].x = observations[j].x*cos(particles[i].theta) - observations[j].y*sin(particles[i].theta) + particles[i].x;
-      map_observations[j].y = observations[j].x*sin(particles[i].theta) + observations[j].y*cos(particles[i].theta) + particles[i].y;
+    double p_x = particles[i].x;
+    double p_y = particles[i].y;
+    double p_theta = particles[i].theta;
+    for(int j=0; j<observations.size(); j++)
+    { 
+      map_observations[j].id = observations[j].id;
+      double o_x = observations[j].x;
+      double o_y = observations[j].y;
+      map_observations[j].x = cos(p_theta)*o_x - sin(p_theta)*o_y + p_x;
+      map_observations[j].y = sin(p_theta)*o_x + cos(p_theta)*o_y + p_y;
     }
     //find predictions (map_landmarks) in the particle's sensing range
     vector<LandmarkObs> predictions;
@@ -172,7 +175,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       LandmarkObs associated_prediction;
       for(int k=0; k<predictions.size(); k++)
       {
-        if(map_observations[j].id == predictions[k].id)
+        if(predictions[k].id == map_observations[j].id)
         {
           associated_prediction = predictions[k];  
         }
@@ -180,15 +183,14 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       //calculate 2-d normal distribution for each observation
       double delta_x = map_observations[j].x - associated_prediction.x;
       double delta_y = map_observations[j].y - associated_prediction.y;
-      double s_x = std_landmark[0];
-      double s_y = std_landmark[1];
-      double prob = exp(-0.5*(delta_x*delta_x/(s_x*s_x)+delta_y*delta_y/(s_y*s_y))) / (2*M_PI*s_x*s_y);
-      std::cout<<"delta_x"<<delta_x<<std::endl;
-      std::cout<<"delta_y"<<delta_y<<std::endl;
-      std::cout<<"prob"<<prob<<std::endl;
+      double std_x = std_landmark[0];
+      double std_y = std_landmark[1];
+      double prob = exp(-0.5*(delta_x*delta_x/(std_x*std_x)+delta_y*delta_y/(std_y*std_y))) / (2*M_PI*std_x*std_y);
       weight *= prob;
     }    
+    //update weight in the particle
     particles[i].weight = weight;
+    //update weights which will be used in resample later
     weights[i] = weight;
   }  
 }
@@ -201,19 +203,21 @@ void ParticleFilter::resample() {
    *   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
    */
   //implement the resample wheel
-  std::uniform_int_distribution<int> uniintdist(0, num_particles-1);
+  std::uniform_int_distribution<int> uni_int_dist(0, num_particles-1);
   std::default_random_engine generator;
-  auto index = uniintdist(generator);
+  auto index = uni_int_dist(generator);
+  //get the max weight
   double max_weight = *max_element(weights.begin(), weights.end());
-  std::cout<<"max weignt: "<<max_weight<<std::endl;
-  std::uniform_real_distribution<double> unirealdist(0.0, 2*max_weight);
+  std::cout<<"==========resample==========="<<std::endl;
+  std::cout<<"max weignt = "<<max_weight<<std::endl;
+  std::uniform_real_distribution<double> uni_real_dist(0.0, 2*max_weight);
   double beta = 0.0;
   
   vector<Particle> resampled_particles;
 
   for(int i=0; i<num_particles; i++)
   {
-    beta += unirealdist(generator);
+    beta += uni_real_dist(generator);
     while(particles[index].weight < beta)
     {
       beta -= particles[index].weight;
