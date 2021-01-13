@@ -129,12 +129,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
    *   https://www.willamette.edu/~gorr/classes/GeneralGraphics/Transforms/transforms2d.htm
    *   and the following is a good resource for the actual equation to implement
    *   (look at equation 3.33) http://planning.cs.uiuc.edu/node99.html
-   */
+   */  
   
-  weights.resize(num_particles);
   for(int i=0; i<num_particles; i++)
   {    
-    // std::cout<<"particles[0].weight = "<<particles[0].weight<<std::endl;
     //convert the observations to map's coordinate system
     //according to "Quiz: Landmarks" in Lesson 5
     double p_x = particles[i].x;
@@ -143,7 +141,6 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     vector<LandmarkObs> map_observations = observations;
     for(int j=0; j<observations.size(); j++)
     { 
-      map_observations[j].id = observations[j].id;
       double o_x = observations[j].x;
       double o_y = observations[j].y;
       map_observations[j].x = cos(p_theta)*o_x - sin(p_theta)*o_y + p_x;
@@ -154,7 +151,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     LandmarkObs prdt;
     for(int j=0; j<map_landmarks.landmark_list.size(); j++)
     {
-      double lm_dist = dist(particles[i].x, particles[i].y, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f);
+      double lm_dist = dist(p_x, p_y, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f);
       if( lm_dist <= sensor_range)
       {
         prdt.id = map_landmarks.landmark_list[j].id_i;
@@ -191,7 +188,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     //update weight in the particle
     particles[i].weight = weight;
     //update weights which will be used in resample later
-    weights[i] = weight;
+    //weights.push_back(weight);
   }  
 }
 
@@ -202,19 +199,25 @@ void ParticleFilter::resample() {
    * NOTE: You may find std::discrete_distribution helpful here.
    *   http://en.cppreference.com/w/cpp/numeric/random/discrete_distribution
    */
-  //implement the resample wheel
-  std::uniform_int_distribution<int> uni_int_dist(0, num_particles-1);
+  
   std::default_random_engine generator;
+  std::uniform_int_distribution<int> uni_int_dist(0, num_particles-1);  
   auto index = uni_int_dist(generator);
-  //get the max weight
+
+  //get all of the weights
+  vector<double> weights;
+  for (int i = 0; i < num_particles; i++) {
+    weights.push_back(particles[i].weight);
+  }
+  //find the max weight
   double max_weight = *max_element(weights.begin(), weights.end());
   std::cout<<"==========resample==========="<<std::endl;
-  std::cout<<"max weignt = "<<max_weight<<std::endl;
+  std::cout<<"max weignt = "<<weights[1]<<std::endl;
   std::uniform_real_distribution<double> uni_real_dist(0.0, 2*max_weight);
   double beta = 0.0;
   
   vector<Particle> resampled_particles;
-
+  //implement the resample wheel
   for(int i=0; i<num_particles; i++)
   {
     beta += uni_real_dist(generator);
