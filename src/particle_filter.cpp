@@ -41,10 +41,10 @@ void ParticleFilter::init(double x, double y, double theta, double std[]) {
   for(int i=0; i<num_particles; i++)
   {
     particles[i].id = i;
-    particles[i].x = xd(generator);
-    particles[i].y = yd(generator);
-    particles[i].theta = td(generator);
-    particles[i].weight = 1;
+    particles[i].x = x + xd(generator);
+    particles[i].y = y + yd(generator);
+    particles[i].theta = theta + td(generator);
+    particles[i].weight = 1.0;
   }
   is_initialized = true;
 
@@ -99,6 +99,7 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
     for(int j=0; j<predicted.size(); j++)
     {
       double curr_dist = dist(observations[i].x, observations[i].y, predicted[j].x, predicted[j].y);
+      std::cout<<"curr_dist = "<<curr_dist<<std::endl;
       if( curr_dist < min_dist)
       {
         min_dist = curr_dist;
@@ -107,6 +108,11 @@ void ParticleFilter::dataAssociation(vector<LandmarkObs> predicted,
     }
     //Assign the closest precdiction to the observation
     observations[i].id = min_p.id;
+    std::cout<<"observations[i].x = "<<observations[i].x<<std::endl;
+    std::cout<<"observations[i].y = "<<observations[i].y<<std::endl;
+    std::cout<<"min_p.x = "<<min_p.x<<std::endl;    
+    std::cout<<"min_p.y = "<<min_p.y<<std::endl;
+    std::cout<<"min_dist = "<<min_dist<<std::endl;          
   }
 
 }
@@ -143,11 +149,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     //find predictions (map_landmarks) in the particle's sensing range
     vector<LandmarkObs> predictions;
     LandmarkObs prdt;
-    //init weight
-    double weight = 1.0;
     for(int j=0; j<map_landmarks.landmark_list.size(); j++)
     {
-      if(dist(particles[i].x, particles[i].y, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f) <= sensor_range)
+      double lm_dist = dist(particles[i].x, particles[i].y, map_landmarks.landmark_list[j].x_f, map_landmarks.landmark_list[j].y_f);
+      if( lm_dist <= sensor_range)
       {
         prdt.id = map_landmarks.landmark_list[j].id_i;
         prdt.x = map_landmarks.landmark_list[j].x_f;
@@ -157,9 +162,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
     }
     //associate the observations with predictions
     dataAssociation(predictions, map_observations);
-    std::cout<<"map_observations[0].x = "<<map_observations[0].x<<std::endl;
-    std::cout<<"predictions.size() = "<<predictions.size()<<std::endl;
-    //update weights based on multivariate Guassian distribution    
+
+    //update weights based on multivariate Guassian distribution
+    //init weight
+    double weight = 1.0;
     for(int j=0; j<map_observations.size(); j++)
     {
       //locate the associated prediction
@@ -168,7 +174,7 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       {
         if(map_observations[j].id == predictions[k].id)
         {
-          associated_prediction = predictions[k];
+          associated_prediction = predictions[k];  
         }
       }
       //calculate 2-d normal distribution for each observation
@@ -178,12 +184,10 @@ void ParticleFilter::updateWeights(double sensor_range, double std_landmark[],
       double s_y = std_landmark[1];
       double prob = exp(-0.5*(delta_x*delta_x/(s_x*s_x)+delta_y*delta_y/(s_y*s_y))) / (2*M_PI*s_x*s_y);
       weight *= prob;
-  }
-    
+    }    
     particles[i].weight = weight;
     weights[i] = weight;
-  }
-  
+  }  
 }
 
 void ParticleFilter::resample() {
